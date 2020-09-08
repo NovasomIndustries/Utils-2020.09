@@ -1,0 +1,15 @@
+#!/bin/sh
+get_exec m9_Image
+[ "$?" = "1" ] && exit 1
+get_exec m9_dtb.dtb
+[ "$?" = "1" ] && exit 1
+get_exec m9_boot.scr
+[ "$?" = "1" ] && exit 1
+rm -rf /tmp/update_dir
+mkdir /tmp/update_dir
+mount /dev/mmcblk0p1 /tmp/update_dir
+cp /tmp/m9_Image /tmp/update_dir/Image
+cp /tmp/m9_dtb.dtb /tmp/update_dir/dtb.dtb
+cp /tmp/m9_boot.scr /tmp/update_dir/boot.scr
+umount /tmp/update_dir
+

@@ -1,0 +1,36 @@
+#!/bin/sh
+. ../SourceMe32
+. ../SourceMe64
+HERE="/Devel/NOVAsdk/Utils/rock"
+. ${HERE}/../functions.sh
+cd ${HERE}
+
+clear_resfile
+rm -f ../../Deploy/m9-idbloader.img ../../Deploy/m9-uboot.img ../../Deploy/m9-trust.img
+BOOT_M9="../../Bootloaders/u-boot-novasomM9-2020-07"
+ATF_M9="../../Bootloaders/atf2.3_m9"
+RKBIN_FOLDER="rkbin_m9"
+TRUST_M9="../../Bootloaders/${RKBIN_FOLDER}"
+cd ${ATF_M9}
+M0_CROSS_COMPILE=arm-buildroot-linux-gnueabihf- make realclean
+exit_if_error $? "make realclean"
+M0_CROSS_COMPILE=arm-buildroot-linux-gnueabihf- make PLAT=rk3399
+exit_if_error $? "make PLAT=rk3399"
+cd ${HERE}
+cd ${TRUST_M9}
+./tools/trust_merger RKTRUST/RK3399TRUST.ini
+exit_if_error $? "trust_merger"
+cd ${HERE}
+cd ${BOOT_M9}
+export PATH=$PATH:${BOOT_M9}/scripts/dtc
+export BL31=${ATF_M9}/build/rk3399/release/bl31/bl31.elf
+make distclean  
+exit_if_error $? "make distclean"
+cp ../${RKBIN_FOLDER}/trust.img .
+make novasom-m9-rk3399_defconfig ; make -j32 ; make -j32 u-boot.itb
+exit_if_error $? "make -j32 ; make -j32 u-boot.itb"
+tools/mkimage -n rk3399 -T rksd -d tpl/u-boot-tpl.bin idbloader.img
+ERR=$?
+exit_if_error $ERR "mkimage"
+cat spl/u-boot-spl.bin >> idbloader.img
+exit_ok

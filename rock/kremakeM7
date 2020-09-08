@@ -1,0 +1,17 @@
+#!/bin/sh
+# $1 = kernel
+# $2 = source me file
+# $3 = .config
+
+KERNEL=$1
+SOURCEMEFILE=$2
+CONFIG=$3
+
+HERE="/Devel/NOVAsdk/Utils/rock"
+. ${HERE}/../functions.sh
+
+./kmakeM7 ${KERNEL} ${SOURCEMEFILE} ${CONFIG}
+ERR=$?
+exit_if_error $ERR "kmake ${KERNEL} ${SOURCEMEFILE} ${CONFIG}"
+echo "Function kmakeM7 returned $ERR : successfull"
+exit $ERR

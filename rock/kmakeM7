@@ -1,0 +1,36 @@
+#!/bin/sh
+# $1 = kernel
+# $2 = source me file
+
+KERNEL=$1
+SOURCEMEFILE=$2
+DEFCONFIG=$3
+
+HERE="/Devel/NOVAsdk/Utils/rock"
+. ${HERE}/../functions.sh
+
+cleanup_and_configure() {
+        make mrproper
+        make distclean
+        make ${DEFCONFIG}
+}
+
+echo "Working on ${KERNEL} with ${SOURCEMEFILE}"
+. ../${SOURCEMEFILE}
+cd ../../Kernels/${KERNEL}
+! [ -z "${DEFCONFIG}" ] && cleanup_and_configure
+[ -d .git ] && mv .git gitb.git
+make -j32
+exit_if_error $? "make -j32"
+make -j32 modules
+exit_if_error $? "make modules"
+make rockchip/rk3328-novasomm7.dtb
+ERR=$?
+exit_if_error $ERR "make dtb"
+mv gitb.git .git
+cd ../../Deploy
+rm m7_Image m7_dtb.dtb m7.kernel.config
+ln -s ../Kernels/${KERNEL}/arch/arm64/boot/Image m7_Image
+ln -s ../Kernels/${KERNEL}/.config m7.kernel.config
+ln -s ../Kernels/${KERNEL}/arch/arm64/boot/dts/rockchip/rk3328-novasomm7.dtb m7_dtb.dtb
+exit $ERR

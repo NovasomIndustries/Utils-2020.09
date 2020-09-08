@@ -1,0 +1,167 @@
+#!/bin/bash
+# ${1} is number of user partition
+# ${2} is size of first user partition, if enabled
+# ${3} is size of second user partition, if enabled
+# ${4} is the device
+# ${5} is the dtb
+# ${6} if present is the autorun path
+
+USERNUM=${1}
+SIZE1=${2}
+SIZE2=${3}
+DISK=${4}
+DTB=${5}
+STORE_APP=${6}
+KERNEL="arch/arm64/boot/Image"
+BOOTDIR="../../Bootloaders/u-boot-novasomM9-2020-07"
+KERNELDIR="../../Kernels/linux-4.4.179_M9"
+DEPLOYDIR="../../Deploy"
+
+HERE="/Devel/NOVAsdk/Utils/rock"
+. ${HERE}/../functions.sh
+
+
+KN=`basename $KERNELDIR`
+echo "Working on $KN"
+
+UINITRD_SIZE=`stat -L --printf="%s"  ${DEPLOYDIR}/uInitrd`
+if [ ${UINITRD_SIZE} -le 41943040 ]; then
+	UINITRD_SIZE="68M"
+elif [ ${UINITRD_SIZE} -le 67108864 ]; then
+	UINITRD_SIZE="100M"
+elif [ ${UINITRD_SIZE} -le 100663296 ]; then
+	UINITRD_SIZE="132M"
+else
+	UINITRD_SIZE="512M"
+fi
+UINITRD_SIZE="512M"
+echo "uInitrd partition set to ${UINITRD_SIZE}"
+
+FILES="${KERNELDIR}/${KERNEL} ${BOOTDIR}/idbloader.img ${BOOTDIR}/u-boot.itb ${DEPLOYDIR}/m9_dtb.dtb ${DEPLOYDIR}/uInitrd boot-novasom-m9.cmd"
+for i in ${FILES}; do
+	if ! [ -f ${i} ]; then
+		NOTFOUND=`basename ${i}`
+		NOTFOUND=${i}
+		exit_if_error 1 "${NOTFOUND} not found. giving up"
+	fi
+done
+if ! [ -f ${DEPLOYDIR}/uInitrd ]; then
+	exit_if_error 1 "uInitrd not found. giving up"
+fi
+# Pre processing
+echo "Files ok, goin' on"
+if [ -f /tmp/M9_bootscript.cmd ]; then
+	mkimage -C none -A arm -T script -d /tmp/M9_bootscript.cmd /tmp/boot.scr
+else
+	mkimage -C none -A arm -T script -d boot-novasom-m9.cmd /tmp/boot.scr
+fi
+exit_if_error $? "mkimage"
+
+[ "${DISK}" = "" ] && DISK="/dev/sdb"
+echo "Device selected : ${DISK}"
+sudo umount ${DISK}*  > /dev/null 2>&1
+echo -n "Zeroing ${DISK} ... "
+sudo dd if=/dev/zero of=${DISK} bs=32M count=1 > /dev/null 2>&1
+sync
+echo "Done"
+echo -n "Creating basic structure on ${DISK} ... "
+echo "sudo sgdisk -Z ${DISK}"
+sudo sgdisk -Z ${DISK} > /dev/null 2>&1
+echo "sudo partprobe ${DISK}"
+sudo partprobe ${DISK} > /dev/null 2>&1
+sync
+echo "Done"
+echo -n "Creating partitions ... "
+echo "sudo sgdisk -n 1:16M:+${UINITRD_SIZE} -c 1:M9Boot ${DISK}"
+sudo sgdisk -n 1:16M:+${UINITRD_SIZE} -c 1:M9Boot ${DISK}
+echo "sudo sgdisk -n 2::+16M -c 2:config ${DISK}"
+sudo sgdisk -n 2::+16M -c 2:config ${DISK}
+if [ "${USERNUM}" = "1" ]; then
+	if [ "${SIZE1}" = "0" ]; then
+		sudo sgdisk -n 3::      -c 3:user1 ${DISK}
+	else
+		sudo sgdisk -n 3::+${SIZE1}M     -c 3:user1 ${DISK}
+	fi
+
+fi
+P4DONE="0"
+if [ "${USERNUM}" = "2" ]; then
+	if [ "${SIZE1}" = "0" ]; then
+		if ! [ "${SIZE2}" = "0" ]; then
+			sudo sgdisk -n 3::+${SIZE2}M      -c 3:user2 ${DISK}
+			P6DONE="1"
+		fi
+		sudo sgdisk -n 3::      -c 3:user1 ${DISK}
+	else
+		sudo sgdisk -n 3::+${SIZE1}M      -c 3:user1 ${DISK}
+	fi
+	if [ "${P4DONE}" = "0" ]; then
+		if [ "${SIZE2}" = "0" ]; then
+			sudo sgdisk -n 4::      -c 4:user2 ${DISK}
+		else
+			sudo sgdisk -n 4::+${SIZE2}M      -c 4:user2 ${DISK}
+		fi
+	fi
+fi
+sleep 1
+sudo partprobe ${DISK} 
+sleep 1
+echo -n "Formatting and populating partition 1... "
+yes | sudo mkfs.ext2 ${DISK}1
+echo $?
+echo "Done"
+echo -n "Formatting and populating partition 2... "
+yes | sudo mkfs.ext4 ${DISK}2
+echo "Done"
+if [ "${USERNUM}" = "1" ]; then
+	echo -n "Formatting and populating partition 3... "
+	yes | sudo mkfs.ext4 ${DISK}3
+	echo "Done"
+fi
+if [ "${USERNUM}" = "2" ]; then
+	echo -n "Formatting and populating partition 3... "
+	yes | sudo mkfs.ext4 ${DISK}3
+	echo "Done"
+	echo -n "Formatting and populating partition 4... "
+	yes | sudo mkfs.ext4 ${DISK}4
+	echo "Done"
+fi
+sync
+echo "Storing idbloader.img"
+sudo dd if=${BOOTDIR}/idbloader.img of=${DISK} seek=64 status=progress
+sync
+echo "Storing u-boot.itb"
+sudo dd if=${BOOTDIR}/u-boot.itb of=${DISK} seek=16384 status=progress
+sync
+echo -n "Populating boot partition with "
+sudo rm -rf mdisk ; mkdir mdisk
+sudo mount ${DISK}1 mdisk
+sudo mkdir mdisk/binfiles
+echo -n "idbloader.img "
+sudo cp ${BOOTDIR}/idbloader.img mdisk/binfiles
+echo -n "u-boot.itb "
+sudo cp ${BOOTDIR}/u-boot.itb mdisk/binfiles
+echo -n "Image "
+sudo cp ${KERNELDIR}/${KERNEL} mdisk/Image
+echo -n "dtb.dtb "
+sudo cp ${DEPLOYDIR}/m9_dtb.dtb mdisk/dtb.dtb
+echo -n "uInitrd "
+sudo cp ${DEPLOYDIR}/uInitrd mdisk/.
+echo -n "m9.kernel.config "
+sudo cp ${KERNELDIR}/.config mdisk/m9.kernel.config
+echo -n "boot.scr "
+sudo cp /tmp/boot.scr mdisk/.
+sudo cp /tmp/boot.scr ${DEPLOYDIR}/m9_boot.scr
+echo "Done."
+echo -n "Finishing up ..."
+sudo umount mdisk
+if ! [ -z  ${STORE_APP} ]; then
+	echo -n "Storing ${STORE_APP} as application_storage "
+	sudo mount ${DISK}2 mdisk
+	sudo mkdir mdisk/application_storage
+	sudo cp -r ${STORE_APP}/* mdisk/application_storage/.
+	sudo umount mdisk
+fi
+sync
+echo "Done."
+exit_ok

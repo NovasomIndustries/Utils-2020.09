@@ -1,0 +1,20 @@
+#!/bin/sh
+. /Devel/NOVAsdk/Utils/version
+cd /Devel/NOVAsdk${VERSION}/Bootloaders
+[ ! -d u-boot-novasomU-2016.03_${VERSION} ] && ln -s u-boot-novasomU-2016.03_${VERSION} u-boot-novasomU-2016.03
+[ ! -d u-boot-novasomU-2016.03_${VERSION} ] && git clone https://github.com/NovasomIndustries/u-boot-novasomU-2016.03_${VERSION}.git
+echo "U done"
+[ ! -d u-boot-novasomP-2015.04_${VERSION} ] && ln -s u-boot-novasomP-2015.04_${VERSION} u-boot-novasomP-2015.04
+[ ! -d u-boot-novasomP-2015.04_${VERSION} ] && git clone https://github.com/NovasomIndustries/u-boot-novasomP-2015.04_${VERSION}.git
+echo "P done"
+[ ! -d u-boot-novasomM8-2017.11_${VERSION} ] && ln -s u-boot-novasomM8-2017.11_${VERSION} u-boot-novasomM8-2017.11
+[ ! -d u-boot-novasomM8-2017.11_${VERSION} ] && git clone https://github.com/NovasomIndustries/u-boot-novasomM8-2017.11_${VERSION}.git
+echo "M8 done"
+[ ! -d u-boot-novasomM7-2017.09_${VERSION} ] && ln -s u-boot-novasomM7-2020-07_${VERSION} u-boot-novasomM7-2020-07
+[ ! -d u-boot-novasomM7-2017.09_${VERSION} ] && git clone https://github.com/NovasomIndustries/u-boot-novasomM7-2020-07_${VERSION}.git
+[ ! -d atf2.3_m7_${VERSION} ] && ln -s atf2.3_m7_${VERSION} atf2.3_m7
+[ ! -d atf2.3_m7_${VERSION} ] && git clone https://github.com/NovasomIndustries/atf2.3_m7_${VERSION}.git
+[ ! -d rkbin_m7_${VERSION} ] && ln -s rkbin_m7_${VERSION} rkbin_m7
+[ ! -d rkbin_m7_${VERSION} ] && git clone https://github.com/NovasomIndustries/rkbin_m7_${VERSION}.git
+echo "M7 done"
+

@@ -1,0 +1,24 @@
+#!/bin/sh
+# $1 = kernel
+# $2 = source me file
+# $3 = defconfig file
+. ../version
+. ../functions.sh
+clear_resfile
+
+KERNEL=$1
+SOURCEMEFILE=$2
+DEFCONFIGFILE=$3
+. /Devel/NOVAsdk${VERSION}/Utils/${SOURCEMEFILE}
+cd /Devel/NOVAsdk${VERSION}/Kernels/${KERNEL}
+make mrproper
+make ${DEFCONFIGFILE}
+exit_if_error $? "make ${DEFCONFIGFILE}"
+make -j32
+exit_if_error $? "make -j32"
+make -j32 modules
+exit_if_error $? "make modules"
+make qcom/apq8016-sbc.dtb
+cp arch/arm64/boot/Image /Devel/NOVAsdk${VERSION}/Blobs/linux-qualcomm-4.11.0_Image
+cp arch/arm64/boot/Image /Devel/NOVAsdk${VERSION}/Deploy/.
+exit_ok

@@ -1,0 +1,16 @@
+diff --git a/configure.ac b/configure.ac
+index 9a3f322..5a0f80c 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -388,9 +388,10 @@ else
+       ;;
+   esac
+ 
++        #--target-os=$target_os --arch=$host_cpu --cross-prefix=$host_alias-"
+   if test "x$cross_compiling" = xyes; then
+     emblibav_configure_args="$emblibav_configure_args --enable-cross-compile \
+-        --target-os=$target_os --arch=$host_cpu --cross-prefix=$host_alias-"
++        --target-os=$target_os --arch=$host_cpu --cross-prefix=aarch64-linux-"
+   fi
+ 
+   case $host_os in

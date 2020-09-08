@@ -1,0 +1,115 @@
+#!/bin/bash
+# $1 : file system name
+# $2 : board name
+# $3 : desired configuration
+BR_VERSION="2020.05.1"
+BR="buildroot-${BR_VERSION}"
+BSP_DIR="FsBsp"
+PATCH_DIR="Patches"
+IS_ROCKCHIP=0
+
+. ./version
+HERE="/Devel/NOVAsdk/Utils"
+. ${HERE}/functions.sh
+clear_resfile
+
+subst_config()
+{
+        SED_STRING="s/${1}=\([a-z]*\).*/${1}=\"${2}\"/g"
+        cat .config | sed $SED_STRING > aa.config
+        mv aa.config .config
+}
+
+if [ "${1}" = "" ]; then
+	exit_if_error 1 "File system name is missing, givin' up"
+fi
+if [ -d ${1} ]; then
+        rm -rf $1
+fi
+
+if [ "${3}" = "" ]; then
+	case $2 in
+		"P" ) 	BUILDROOT_CFG_BASE="PClass_Buildroot_Base.config"
+				BUSYBOX_CFG_BASE="PClass_BusyBox_Base.config"
+		;;
+		"U5" )	BUILDROOT_CFG_BASE="U5Class_Buildroot_Base.config"
+				BUSYBOX_CFG_BASE="U5Class_BusyBox_Base.config"
+		;;
+		"M8" )	BUILDROOT_CFG_BASE="M8Class_Buildroot_Base.config"
+				BUSYBOX_CFG_BASE="M8Class_BusyBox_Base.config"
+		;;
+		"N1" )	BUILDROOT_CFG_BASE="N1Class_Buildroot_Base.config"
+				BUSYBOX_CFG_BASE="N1Class_BusyBox_Base.config"
+		;;
+		"M7" )	BUILDROOT_CFG_BASE="M7Class_Buildroot_Base.config"
+				BUSYBOX_CFG_BASE="M7Class_BusyBox_Base.config"
+				IS_ROCKCHIP=1
+		;;
+		"M9" )	BUILDROOT_CFG_BASE="M9Class_Buildroot_Base.config"
+				BUSYBOX_CFG_BASE="M9Class_BusyBox_Base.config"
+				IS_ROCKCHIP=1
+		;;
+		* )	BUILDROOT_CFG_BASE="PClass_Buildroot_Base.config"
+				BUSYBOX_CFG_BASE="PClass_BusyBox_Base.config"
+		;;
+	esac
+else
+        BUILDROOT_CFG_BASE=${3}
+	case $2 in
+		"P" ) BUSYBOX_CFG_BASE="PClass_BusyBox_Base.config"
+		;;
+		"U5" ) BUSYBOX_CFG_BASE="U5Class_BusyBox_Base.config"
+		;;
+		"N1" ) BUSYBOX_CFG_BASE="N1Class_BusyBox_Base.config"
+		;;
+		"M8") BUSYBOX_CFG_BASE="M8Class_BusyBox_Base.config"
+		;;
+		"M7") BUSYBOX_CFG_BASE="M7Class_BusyBox_Base.config"
+				IS_ROCKCHIP=1
+		;;
+		"M9") BUSYBOX_CFG_BASE="M9Class_BusyBox_Base.config"
+				IS_ROCKCHIP=1
+		;;
+		* ) 	     BUSYBOX_CFG_BASE="PClass_BusyBox_Base.config"
+		;;
+	esac
+fi
+
+cd /Devel/NOVAsdk/FileSystems
+echo "Using ${BR}"
+cp -a ../Utils/BuildRoot/${BR} ${1}
+cd ${1}
+echo "cp -a /Devel/NOVAsdk/Utils/${BSP_DIR}/novasis board/."
+cp -a /Devel/NOVAsdk/Utils/${BSP_DIR}/novasis board/.
+
+if [ "${IS_ROCKCHIP}" = "1" ]; then
+        RK_GIT="../FileSystems/external"
+        KRN_LINK="../FileSystems/kernel"
+        if ! [ -e ${RK_GIT} ]; then
+		HERE=`pwd`
+                echo "Creating link"
+                cd /Devel/NOVAsdk/FileSystems
+		rm external
+                ln -s ../Utils/rock/rk_external external
+                cd ${HERE}
+        fi
+        if ! [ -e ${KRN_LINK} ]; then
+		HERE=`pwd`
+                echo "Creating link"
+                cd /Devel/NOVAsdk/FileSystems
+		rm kernel
+                ln -s ../Kernels/linux-4.4.179_M9 kernel
+                cd ${HERE}
+        fi
+fi
+
+echo "Using ${BUILDROOT_CFG_BASE} and ${BUSYBOX_CFG_BASE}"
+cp /Devel/NOVAsdk/Utils/Configurations/${BUILDROOT_CFG_BASE} .config
+cp /Devel/NOVAsdk/Utils/Configurations/${BUSYBOX_CFG_BASE} BusyBox.config
+
+subst_config "BR2_TARGET_GENERIC_HOSTNAME" ${1}
+subst_config "BR2_TARGET_GENERIC_ISSUE" "Welcome"
+subst_config "BR2_PACKAGE_BUSYBOX_CONFIG" "\.\/BusyBox\.config"
+cd ..
+echo "Done ${1}"
+exit_ok

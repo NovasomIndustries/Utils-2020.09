@@ -1,0 +1,38 @@
+#!/bin/sh
+# $1 = kernel
+# $2 = source me file
+
+HERE="/Devel/NOVAsdk/Utils/rock"
+. ${HERE}/../functions.sh
+
+KERNEL=$1
+SOURCEMEFILE=$2
+DEFCONFIG=$3
+ROCKTOOLSDIR=`pwd`
+
+cleanup_and_configure() {
+        make mrproper
+        make distclean
+	make ${DEFCONFIG}
+}
+
+echo "Working on ${KERNEL} with ${SOURCEMEFILE}"
+. ../${SOURCEMEFILE}
+cd ../../Kernels/${KERNEL}
+! [ -z "${DEFCONFIG}" ] && cleanup_and_configure
+! [ -f .config ] && cleanup_and_configure
+[ -d .git ] && mv .git gitb.git
+make -j32
+exit_if_error $? "make -j32"
+make -j32 modules
+exit_if_error $? "make modules"
+make rockchip/rk3399-novasom-m9.dtb
+ERR=$?
+exit_if_error $ERR "make dtb"
+mv gitb.git .git
+cd ../../Deploy
+rm m9_Image m9_dtb.dtb m9.kernel.config
+ln -s ../Kernels/${KERNEL}/arch/arm64/boot/Image m9_Image
+ln -s ../Kernels/${KERNEL}/.config m9.kernel.config
+ln -s ../Kernels/${KERNEL}/arch/arm64/boot/dts/rockchip/rk3399-novasom-m9.dtb m9_dtb.dtb
+exit $ERR

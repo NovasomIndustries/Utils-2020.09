@@ -1,0 +1,14 @@
+#!/bin/sh
+. ../SourceMe32
+. ../version
+. ../functions.sh
+clear_resfile
+
+cd /Devel/NOVAsdk${VERSION}/Bootloaders/u-boot-novasomU-2016.03
+make distclean
+make mrproper
+make novasomu_defconfig
+make -j32
+exit_if_error $? "Error on make"
+exit_ok
+

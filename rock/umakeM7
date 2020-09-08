@@ -1,0 +1,32 @@
+#!/bin/sh
+. ../SourceMe64
+HERE="/Devel/NOVAsdk/Utils/rock"
+. ${HERE}/../functions.sh
+cd ${HERE}
+
+clear_resfile
+rm -f ../../Deploy/m7-idbloader.img ../../Deploy/m7-uboot.img ../../Deploy/m7-trust.img
+BOOT_M7="../../Bootloaders/u-boot-novasomM7-2020-07"
+ATF_M7="../../Bootloaders/atf2.3_m7"
+RKBIN_FOLDER="rkbin_m7"
+TRUST_M7="../../Bootloaders/${RKBIN_FOLDER}"
+cd ${ATF_M7}
+make realclean
+exit_if_error $? "make realclean"
+make PLAT=rk3328
+exit_if_error $? "make PLAT=rk3328"
+cd ${HERE}
+cd ${TRUST_M7}
+./tools/trust_merger RKTRUST/RK3328TRUST.ini
+exit_if_error $? "trust_merger"
+cd ${HERE}
+cd ${BOOT_M7}
+export PATH=$PATH:${BOOT_M7}/scripts/dtc
+export BL31=${ATF_M7}/build/rk3328/release/bl31/bl31.elf
+make distclean  
+exit_if_error $? "make distclean"
+cp ../${RKBIN_FOLDER}/trust.img .
+make rock64-rk3328_defconfig ; make -j32
+ERR=$?
+exit_if_error $ERR "make rock64-rk3328_defconfig ; make -j32"
+exit_ok

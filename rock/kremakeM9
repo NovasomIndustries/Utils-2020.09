@@ -1,0 +1,15 @@
+#!/bin/sh
+# $1 = kernel
+# $2 = source me file
+# $3 = .config
+
+HERE="/Devel/NOVAsdk/Utils/rock"
+. ${HERE}/../functions.sh
+
+KERNEL=$1
+SOURCEMEFILE=$2
+CONFIG=$3
+./kmakeM9 ${KERNEL} ${SOURCEMEFILE} ${CONFIG}
+ERR=$?
+exit_if_error $ERR "make -j32"
+exit_ok

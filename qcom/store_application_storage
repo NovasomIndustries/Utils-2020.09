@@ -1,0 +1,22 @@
+#!/bin/bash
+# ${1} pointer to the application_storage folder
+# ${2} is the device
+DISK=${2}
+
+. ../functions.sh
+clear_resfile
+
+
+sudo rm -rf /tmp/tmpmount
+sudo mkdir /tmp/tmpmount
+sleep 1
+sudo mount ${DISK}10 /tmp/tmpmount
+exit_if_error $? "Failed to mount ${DISK}10"
+sudo rm -rf /tmp/tmpmount/application_storage
+sudo mkdir /tmp/tmpmount/application_storage
+echo -n "Copying application_storage ..."
+sudo cp ${1}/* /tmp/tmpmount/application_storage/.
+echo "Done"
+sudo umount /tmp/tmpmount
+sync
+exit_ok

@@ -1,0 +1,14 @@
+#!/bin/sh
+IS_ROCKCHIP=1
+
+if [ "${IS_ROCKCHIP}" = "1" ]; then
+        RK_GIT="../FileSystems/external"
+        if ! [ -e ${RK_GIT} ]; then
+		HERE=`pwd`
+                echo "Creating link"
+                cd ../FileSystems
+                ln -s ../Utils/rock/rk_external external
+                cd ${HERE}
+        fi
+fi
+

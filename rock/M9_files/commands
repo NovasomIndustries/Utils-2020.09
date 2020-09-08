@@ -1,0 +1,4 @@
+./kmakeM9 linux-4.4.179_M9 SourceMe64plus
+./MakeFsM9 M9_Base  192.168.10.198 linux-4.4.179
+./flashM9 0 - - /dev/sdb rk3399-novasom-m9.dtb
+

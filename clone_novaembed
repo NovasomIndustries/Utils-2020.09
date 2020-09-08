@@ -1,0 +1,27 @@
+#!/bin/sh
+. ./version
+VERSION="2020.09"
+HERE=`pwd`
+cd /Devel/NOVAsdk
+[ ! -d Qt ] && mkdir Qt
+cd Qt
+rm -rf NOVAembed NOVAembed-${VERSION}
+rm -rf build*
+git clone https://github.com/NovasomIndustries/NOVAembed-${VERSION}.git
+ln -s NOVAembed-${VERSION} NOVAembed 
+
+mkdir build-NOVAembed-Desktop-Debug
+cd build-NOVAembed-Desktop-Debug
+/usr/lib/qt5/bin/qmake /Devel/NOVAsdk/Qt/NOVAembed/NOVAembed.pro -spec linux-g++ CONFIG+=debug CONFIG+=qml_debug 
+make -j32
+
+PARSERS="NOVAembed_P_Parser NOVAembed_U_Parser NOVAembed_M7_Parser NOVAembed_M9_Parser"
+for i in ${PARSERS}; do
+	cd /Devel/NOVAsdk/Qt/NOVAembed/${i}
+	rm -rf obj bin
+	mkdir -p obj bin/Debug
+	gcc -Wall -g  -c src/dts_gen.c -o obj/dts_gen.o
+	gcc -Wall -g  -c src/iomux.c -o obj/iomux.o
+	gcc -Wall -g  -c src/main.c -o obj/main.o
+	g++  -o bin/Debug/${i} obj/dts_gen.o obj/iomux.o obj/main.o
+done

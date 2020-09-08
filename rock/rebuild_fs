@@ -1,0 +1,9 @@
+#!/bin/sh
+# $1 =  file system
+
+FILESYSTEM=$1
+
+echo "Rebuilding ${FILESYSTEM}"
+cd ${FILESYSTEM}
+make
+exit $?

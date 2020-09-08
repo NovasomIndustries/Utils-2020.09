@@ -1,0 +1,23 @@
+#!/bin/bash
+# ${1} pointer to the application_storage folder
+# ${2} is the device
+DISK=${2}
+
+HERE="/Devel/NOVAsdk/Utils/rock"
+. ${HERE}/../functions.sh
+
+clear_resfile
+sync
+sudo rm -rf /tmp/tmpmount
+sudo mkdir /tmp/tmpmount
+sleep 1
+sudo mount ${DISK}2 /tmp/tmpmount
+exit_if_error $? "mount"
+sudo rm -rf /tmp/tmpmount/application_storage
+sudo mkdir /tmp/tmpmount/application_storage
+echo -n "Copying application_storage ..."
+sudo cp -r ${1}/* /tmp/tmpmount/application_storage/.
+echo "Done"
+sudo umount /tmp/tmpmount
+sync
+exit_ok

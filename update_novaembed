@@ -1,0 +1,25 @@
+#!/bin/sh
+. ./version
+VERSION="2020.09"
+
+HERE="/Devel/NOVAsdk/Utils"
+. ${HERE}/functions.sh
+clear_resfile
+
+echo -n "Working on NOVAembed ... "
+if [ -d /Devel/NOVAsdk/Qt/NOVAembed-${VERSION} ]; then
+	cd /Devel/NOVAsdk/Qt/NOVAembed
+	git pull --dry-run 2> ../res
+	cat ../res | grep master
+	if [ "$?" = "0" ]; then
+		cd ..
+		rm -rf *
+		/Devel/NOVAsdk/Utils/clone_novaembed
+		exit_if_error 1 "NOVAembed updated"
+	else
+		echo "Already up to date"
+		exit_if_error 0 "Already up to date"
+	fi
+else
+	/Devel/NOVAsdk/Utils/clone_novaembed
+fi

@@ -1,0 +1,146 @@
+#!/bin/bash
+# ${1} is number of user partition
+# ${2} is size of first user partition, if enabled
+# ${3} is size of second user partition, if enabled
+# ${4} is the device
+# ${5} is the dtb
+
+USERNUM=${1}
+SIZE1=${2}
+SIZE2=${3}
+DISK=${4}
+DTB=${5}
+# NOVASOM_PARAMS=${7}
+# RAMDISK_SIZE=${8}
+KERNEL="arch/arm64/boot/Image"
+BOOTDIR="../../Bootloaders/u-boot-novasomM7-2020-07"
+KERNELDIR="../../Kernels/linux-4.4.167_M7"
+DEPLOYDIR="../../Deploy"
+
+HERE="/Devel/NOVAsdk/Utils/rock"
+. ${HERE}/../functions.sh
+
+clear_resfile
+
+# Pre processing
+mkimage -C none -A arm -T script -d boot-novasom-m7.cmd /tmp/boot.scr
+exit_if_error $? "mkimage"
+
+UINITRD_SIZE=`stat -L --printf="%s"  ${DEPLOYDIR}/uInitrd`
+if [ ${UINITRD_SIZE} -le 41943040 ]; then
+	UINITRD_SIZE="68M"
+elif [ ${UINITRD_SIZE} -le 67108864 ]; then
+	UINITRD_SIZE="100M"
+elif [ ${UINITRD_SIZE} -le 100663296 ]; then
+	UINITRD_SIZE="132M"
+else
+	UINITRD_SIZE="512M"
+fi
+echo "uInitrd is ${UINITRD_SIZE}"
+
+FILES="${KERNELDIR}/${KERNEL} ${BOOTDIR}/idbloader.img  ${BOOTDIR}/trust.img ${BOOTDIR}/u-boot.img ${DEPLOYDIR}/m7_dtb.dtb ${DEPLOYDIR}/uInitrd"
+for i in ${FILES}; do
+	if ! [ -f ${i} ]; then
+		NOTFOUND=`basename ${i}`
+		NOTFOUND=${i}
+		exit_if_error 1 "${NOTFOUND} not found. giving up"
+	fi
+done
+if ! [ -f ${DEPLOYDIR}/uInitrd ]; then
+        exit_if_error 1 "uInitrd not found. giving up"
+fi
+sudo umount ${DISK}*  > /dev/null 2>&1
+[ "${DISK}" = "" ] && DISK="/dev/sdb"
+echo -n "Creating basic structure on ${DISK} ... "
+sudo sgdisk -Z ${DISK} > /dev/null 2>&1
+sudo partprobe ${DISK} > /dev/null 2>&1
+sync
+echo "Done"
+echo -n "Zeroing ${DISK} ... "
+sudo dd if=/dev/zero of=${DISK} bs=32M count=1 > /dev/null 2>&1
+sync
+echo "Done"
+echo -n "Creating partitions ... "
+sudo sgdisk -n 1:16M:+${UINITRD_SIZE} -c 1:M7Boot ${DISK}
+sudo sgdisk -n 2::+16M -c 2:config ${DISK}
+if [ "${USERNUM}" = "1" ]; then
+	if [ "${SIZE1}" = "0" ]; then
+		sudo sgdisk -n 3::      -c 3:user1 ${DISK}
+	else
+		sudo sgdisk -n 3::+${SIZE1}M     -c 3:user1 ${DISK}
+	fi
+
+fi
+P4DONE="0"
+if [ "${USERNUM}" = "2" ]; then
+	if [ "${SIZE1}" = "0" ]; then
+		if ! [ "${SIZE2}" = "0" ]; then
+			sudo sgdisk -n 3::+${SIZE2}M      -c 3:user2 ${DISK}
+			P6DONE="1"
+		fi
+		sudo sgdisk -n 3::      -c 3:user1 ${DISK}
+	else
+		sudo sgdisk -n 3::+${SIZE1}M      -c 3:user1 ${DISK}
+	fi
+	if [ "${P4DONE}" = "0" ]; then
+		if [ "${SIZE2}" = "0" ]; then
+			sudo sgdisk -n 4::      -c 4:user2 ${DISK}
+		else
+			sudo sgdisk -n 4::+${SIZE2}M      -c 4:user2 ${DISK}
+		fi
+	fi
+fi
+sleep 1
+sudo partprobe ${DISK} 
+sleep 1
+echo -n "Formatting and populating partition 1... "
+yes | sudo mkfs.ext2 ${DISK}1
+echo $?
+echo "Done"
+echo -n "Formatting and populating partition 2... "
+yes | sudo mkfs.ext4 ${DISK}2
+echo "Done"
+if [ "${USERNUM}" = "1" ]; then
+	echo -n "Formatting and populating partition 3... "
+	yes | sudo mkfs.ext4 ${DISK}3
+	echo "Done"
+fi
+if [ "${USERNUM}" = "2" ]; then
+	echo -n "Formatting and populating partition 3... "
+	yes | sudo mkfs.ext4 ${DISK}3
+	echo "Done"
+	echo -n "Formatting and populating partition 4... "
+	yes | sudo mkfs.ext4 ${DISK}4
+	echo "Done"
+fi
+sync
+echo "Storing idbloader.img "
+sudo dd if=${BOOTDIR}/idbloader.img of=${DISK}  seek=64 conv=notrunc > /dev/null 2>&1
+sync
+
+echo "Storing uboot.img"
+sudo dd if=${BOOTDIR}/u-boot.itb  of=${DISK} seek=16384 conv=sync,fsync,notrunc > /dev/null 2>&1
+sync
+
+echo "Storing trust.img"
+sudo dd if=${BOOTDIR}/trust.img  of=${DISK} seek=24576 conv=sync,fsync,notrunc > /dev/null 2>&1
+sync
+
+echo "Populating boot partition"
+sudo rm -rf mdisk ; mkdir mdisk
+sudo mount ${DISK}1 mdisk
+sudo mkdir mdisk/binfiles
+sudo cp ${BOOTDIR}/idbloader.img mdisk/binfiles
+sudo cp ${BOOTDIR}/u-boot.itb mdisk/binfiles
+sudo cp ${KERNELDIR}/${KERNEL} mdisk/Image
+sudo cp ${DEPLOYDIR}/m7_dtb.dtb mdisk/dtb.dtb
+sudo cp ${DEPLOYDIR}/uInitrd mdisk/.
+sudo cp ${DEPLOYDIR}/*.config mdisk/.
+sudo cp /tmp/boot.scr mdisk/.
+sudo cp /tmp/boot.scr ${DEPLOYDIR}/m7_boot.scr
+echo "Done."
+echo -n "Finishing up ..."
+sudo umount mdisk
+sync
+echo "Done."
+exit_ok

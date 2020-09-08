@@ -1,0 +1,29 @@
+#!/bin/sh
+# $1 = kernel
+# $2 = source me file
+# $3 = if null is a standard compile else contains a .config
+
+KERNEL=$1
+SOURCEMEFILE=$2
+CONFIG_FILE=$3
+. ../functions.sh
+clear_resfile
+
+cleanup_and_configure() {
+	echo "Cleanup"
+	make mrproper
+	make distclean
+	echo "Config is ${CONFIG_FILE}"
+	make ${CONFIG_FILE}
+}
+
+echo "Working on ${KERNEL} with ${SOURCEMEFILE}"
+. ../${SOURCEMEFILE}
+cd ../../Kernels/${KERNEL}
+! [ -z "${CONFIG_FILE}" ] && cleanup_and_configure
+make -j32 zImage modules
+exit_if_error $? "make -j32 zImage modules"
+cd ../../Deploy
+rm zImage
+ln -s ../Kernels/${KERNEL}/arch/arm/boot/zImage zImage
+exit_ok

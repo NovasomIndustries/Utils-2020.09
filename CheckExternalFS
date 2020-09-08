@@ -1,0 +1,33 @@
+#!/bin/bash
+CURRENTBOARD=$1
+REPO_SERVER=$2
+BACKUP_REPO_SERVER=$3
+FSNAME=$4
+
+HERE="/Devel/NOVAsdk/Utils"
+. ${HERE}/functions.sh
+clear_resfile
+
+cd ../ExternalFileSystems/${CURRENTBOARD}
+# get lengths
+rm -f len
+wget --spider --server-response http://${REPO_SERVER}/OS/${CURRENTBOARD}/${FSNAME} -o len
+if ! [ "$?"="0" ]; then
+	wget --spider --server-response http://${BACKUP_REPO_SERVER}/OS/${CURRENTBOARD}/${FSNAME} -o len
+	if ! [ "$?"="0" ]; then
+                exit_if_error 1 "wget Broken link"
+	fi
+fi
+LEN=`cat len | grep Length | grep applicat | awk '{print $2}'`
+if [ -z ${LEN} ]; then
+	exit_if_error 1 "File does'nt exist"
+fi
+LOCAL_SIZE=`du -b "${FSNAME}" | awk '{print $1}'`
+if ! [ "${LOCAL_SIZE}" = "${LEN}" ]; then
+	exit_if_error 1 "File differs"
+else
+	echo "File are the same"
+fi
+rm -f len
+exit_ok
+
