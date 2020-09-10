@@ -1,5 +1,5 @@
 #!/bin/sh
 cd /Devel/NOVAsdk/Utils
-./update_others
+./update_components
 ./update_novaembed  
 
