@@ -2,3 +2,4 @@
 cp /Devel/NOVAsdk/Utils/update_components_in_tmp /tmp/.
 chmod +x /tmp/update_components_in_tmp
 /tmp/update_components_in_tmp
+rm /tmp/update_components_in_tmp

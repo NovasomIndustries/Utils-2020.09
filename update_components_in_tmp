@@ -1,12 +1,12 @@
 #!/bin/sh
-UPD_ELEMENTS="Doc-2020.09 Utils-2020.09"
+UPD_ELEMENTS="Utils-2020.09"
 cd /Devel/NOVAsdk
 for i in ${UPD_ELEMENTS}; do
 	HERE=`pwd`
 	if [ -d ${i} ]; then
 		cd ${i}
 		echo -n "Working on ${i} ... "
-		git pull
+		git pull https://github.com/NovasomIndustries/$i.git
 	fi
 	cd ${HERE}
 done
