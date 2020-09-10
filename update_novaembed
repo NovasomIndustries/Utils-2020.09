@@ -1,6 +1,5 @@
 #!/bin/sh
 . ./version
-VERSION="2020.09"
 
 HERE="/Devel/NOVAsdk/Utils"
 . ${HERE}/functions.sh

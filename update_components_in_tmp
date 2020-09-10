@@ -1,5 +1,6 @@
 #!/bin/sh
-UPD_ELEMENTS="Utils-2020.09"
+. /tmp/version
+UPD_ELEMENTS="Utils-${VERSION}"
 cd /Devel/NOVAsdk
 for i in ${UPD_ELEMENTS}; do
 	HERE=`pwd`
