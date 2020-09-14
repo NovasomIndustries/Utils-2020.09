@@ -90,6 +90,7 @@ if [ "${USERNUM}" = "2" ]; then
 		fi
 	fi
 fi
+sudo sgdisk -A 1:set:2 ${DISK}
 sleep 1
 sudo partprobe ${DISK} 
 sleep 1

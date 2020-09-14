@@ -104,6 +104,7 @@ if [ "${USERNUM}" = "2" ]; then
 	fi
 fi
 sleep 1
+sudo sgdisk -A 1:set:2 ${DISK}
 sudo partprobe ${DISK} 
 sleep 1
 echo -n "Formatting and populating partition 1... "
