@@ -1,11 +1,13 @@
 #!/bin/sh
 # $1 = kernel
 # $2 = source me file
-# $3 = if null is a standard compile else contains a .config
+# $3 = skip module
+# $4 = if null is a standard compile else contains a .config
 
 KERNEL=$1
 SOURCEMEFILE=$2
-CONFIG_FILE=$3
+SKIP_MODULE_BUILD=$3
+CONFIG_FILE=$4
 . ../functions.sh
 clear_resfile
 
@@ -21,8 +23,14 @@ echo "Working on ${KERNEL} with ${SOURCEMEFILE}"
 . ../${SOURCEMEFILE}
 cd ../../Kernels/${KERNEL}
 ! [ -z "${CONFIG_FILE}" ] && cleanup_and_configure
-make -j32 zImage modules
-exit_if_error $? "make -j32 zImage modules"
+make -j32 zImage
+exit_if_error $? "make -j32 zImage"
+if ! [ "${SKIP_MODULE_BUILD}"="skip_module" ]; then
+	make -j32 modules
+	exit_if_error $? "make -j32 modules"
+else
+	exit_if_error 0 "skipped modules compile"
+fi
 cd ../../Deploy
 rm zImage
 ln -s ../Kernels/${KERNEL}/arch/arm/boot/zImage zImage

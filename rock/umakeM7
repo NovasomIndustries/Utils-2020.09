@@ -1,12 +1,11 @@
 #!/bin/sh
+cd /Devel/NOVAsdk/Utils/rock
 . ../SourceMe64
-HERE="/Devel/NOVAsdk/Utils/rock"
-. ${HERE}/../functions.sh
-cd ${HERE}
+. ../functions.sh
 
 clear_resfile
 rm -f ../../Deploy/m7-idbloader.img ../../Deploy/m7-uboot.img ../../Deploy/m7-trust.img
-BOOT_M7="../../Bootloaders/u-boot-novasomM7-2020-07"
+BOOT_M7="../../Bootloaders/$1"
 ATF_M7="../../Bootloaders/atf2.3_m7"
 RKBIN_FOLDER="rkbin_m7"
 TRUST_M7="../../Bootloaders/${RKBIN_FOLDER}"

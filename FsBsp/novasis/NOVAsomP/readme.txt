@@ -9,7 +9,7 @@ Please read the Quick Start Guide [1] for an introduction to the board.
 Build
 =====
 
-Configure Buildroot for your i.MX6UL EVK board:
+Configure Buildroot for your i.MX6 board:
 
   make novasis_novasomp_defconfig
 

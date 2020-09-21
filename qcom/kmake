@@ -1,6 +1,9 @@
 #!/bin/sh
 # $1 = kernel
 # $2 = source me file
+# $3 = skip module
+# $4 = if null is a standard compile else contains a .config
+
 . ../version
 . ../functions.sh
 clear_resfile
@@ -12,9 +15,14 @@ echo "Working on ${KERNEL} with ${SOURCEMEFILE}"
 cd ../../Kernels/${KERNEL}
 make -j32 Image
 exit_if_error $? "make -j32 Image"
-make -j32 modules
-exit_if_error $? "make -j32 modules"
+if ! [ "${SKIP_MODULE_BUILD}"="skip_module" ]; then
+        make -j32 modules
+        exit_if_error $? "make -j32 modules"
+else
+        exit_if_error 0 "skipped modules compile"
+fi
 make qcom/apq8016-sbc.dtb
+exit_if_error $? "make dtb"
 cd ../../Deploy
 rm Image
 ln -s ../Kernels/${KERNEL}/arch/arm64/boot/Image

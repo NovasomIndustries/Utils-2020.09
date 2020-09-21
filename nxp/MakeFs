@@ -6,7 +6,7 @@
 . ../version
 . ../functions.sh
 
-PREPEND_PATH="/Devel/NOVAsdk${VERSION}/FileSystem"
+PREPEND_PATH="/Devel/NOVAsdk/FileSystems"
 FSNAME=$1
 IP=$2
 echo ""

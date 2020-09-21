@@ -3,17 +3,16 @@
 . ../version
 . ../functions.sh
 clear_resfile
-BOOT_P="../../Bootloaders/u-boot-novasomP-2015.04"
-cd ${BOOT_P}
+cd /Devel/NOVAsdk/Bootloaders/${1}
 make distclean
-[ "$?" != "0" ] && exit
+exit_if_error $? "make distclean"
 make mrproper
-[ "$?" != "0" ] && exit
+exit_if_error $? "make mrproper"
 make novasomp_defconfig
-[ "$?" != "0" ] && exit
+exit_if_error $? "make novasomp_defconfig"
 make -j32
-[ "$?" != "0" ] && exit
-cd /Devel/NOVAsdk${VERSION}/Deploy
+exit_if_error $? "make -j32"
+cd /Devel/NOVAsdk/Deploy
 rm -f u-boot.img SPL
 ln -s ${BOOT_P}/u-boot.img
 ln -s ${BOOT_P}/SPL

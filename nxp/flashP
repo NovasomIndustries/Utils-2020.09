@@ -17,79 +17,64 @@ DISK=${4}
 sync
 sudo umount ${DISK}* >/dev/null 2>&1
 sync
+BOOT_IS="u-boot-novasomP-2015.04"
+KERNEL_IS="linux-5.7.19_P"
 
-SPL_FILE="/Devel/NOVAsdk${VERSION}/Bootloaders/u-boot-novasomP-2015.04/SPL"
-UBOOT_IMG="/Devel/NOVAsdk${VERSION}/Bootloaders/u-boot-novasomP-2015.04/u-boot.img"
-KERNEL="/Devel/NOVAsdk${VERSION}/Kernels/linux-imx_4.1.15_1.2.0_ga/arch/arm/boot/zImage"
-DTB_FILESDL="/Devel/NOVAsdk${VERSION}/DtbUserWorkArea/${5}"
-DTB_FILEQ="/Devel/NOVAsdk${VERSION}/DtbUserWorkArea/${6}"
-UINITRD="/Devel/NOVAsdk${VERSION}/Deploy/uInitrd"
-NOVASOMPARAMS="/Devel/NOVAsdk${VERSION}/Utils/BootParameters/$7"
-DEPLOY_DIR="/Devel/NOVAsdk${VERSION}/Deploy"
+SPL_FILE="/Devel/NOVAsdk/Bootloaders/${BOOT_IS}/SPL"
+UBOOT_IMG="/Devel/NOVAsdk/Bootloaders/${BOOT_IS}/u-boot.img"
+KERNEL="/Devel/NOVAsdk/Kernels/${KERNEL_IS}/arch/arm/boot/zImage"
+DTB_FILESDL="/Devel/NOVAsdk/DtbUserWorkArea/${5}"
+DTB_FILEQ="/Devel/NOVAsdk/DtbUserWorkArea/${6}"
+UINITRD="/Devel/NOVAsdk/Deploy/uInitrd"
+NOVASOMPARAMS="/Devel/NOVAsdk/Utils/BootParameters/$7"
+DEPLOY_DIR="/Devel/NOVAsdk/Deploy"
 RAMDISK_SIZE="$8"
-echo "NOVASOMPARAMS is $NOVASOMPARAMS"
 
+exit_if_error 0 "NOVASOMPARAMS is $NOVASOMPARAMS"
 
 FILES="$SPL_FILE $UBOOT_IMG $KERNEL $DTB_FILESDL $DTB_FILEQ $UINITRD $NOVASOMPARAMS"
 for i in ${FILES}; do
 	if ! [ -f ${i} ]; then
-		echo "File ${i} not found"
-		exit
+		exit_if_error 1 "File ${i} not found"
 	fi
 done
 
 if [ ! -b ${DISK} ]; then
-       echo "${DISK} not found"
-       exit
+	exit_if_error 1 "${DISK} not found"
 fi
 
-echo "Everything is ok, proceeding"
-
 sudo umount ${DISK}* >/dev/null 2>&1
-echo "Writing uSD"
 sleep 1
 sudo sgdisk -Z ${DISK} >/dev/null 2>&1
-sudo echo -n "Writing u-boot ... "
 sudo dd if=/dev/zero of=${DISK} bs=4M count=1; sync
 sudo dd if=${SPL_FILE} of=${DISK} bs=1k seek=1; sync
 sync
-echo "Done"
+exit_if_error 0 "uSD cleared and uboot written"
 
 format_usd ${1} ${2} ${3} ${DISK}
-if [ "$?" = "1" ]; then
-	echo "Error formatting uSD!"
-	exit
-fi
+exit_if_error $? "Format uSD!"
 
 rm -rf tmpmount
 mkdir tmpmount
 sleep 1
 sudo mount ${DISK}1 tmpmount
-[ "$?" != "0" ] && exit
+exit_if_error $? "Mount uSD!"
 
-echo -n "Copying `basename ${UBOOT_IMG}` ..."
 sudo cp ${UBOOT_IMG} tmpmount/.
-[ "$?" != "0" ] && exit
-echo "Done"
-echo -n "Copying `basename ${KERNEL}` ..."
+exit_if_error $? "Copying `basename ${UBOOT_IMG}`"
 sudo cp ${KERNEL} tmpmount/zImage
-[ "$?" != "0" ] && exit
-echo "Done"
-echo -n "Copying `basename ${UINITRD}` ..."
+exit_if_error $? "Copying kernel"
 sudo cp ${UINITRD} tmpmount/.
-[ "$?" != "0" ] && exit
-echo -n "Copying `basename ${NOVASOMPARAMS}` ..."
+exit_if_error $? "Copying `basename ${UINITRD}`"
 echo "setramsize=setenv rdsize ${RAMDISK_SIZE}" > ${DEPLOY_DIR}/NOVAsomParams
 cat ${NOVASOMPARAMS} >> ${DEPLOY_DIR}/NOVAsomParams
 sudo cp ${DEPLOY_DIR}/NOVAsomParams tmpmount/.
-[ "$?" != "0" ] && exit
+exit_if_error $? "Copying `basename ${NOVASOMPARAMS}`"
 
-echo -n "Copying `basename ${DTB_FILEQ}` ..."
 sudo cp ${DTB_FILEQ} tmpmount/imx6q-novasomP.dtb
-echo -n "Copying `basename ${DTB_FILESDL}` ..."
+exit_if_error $? "Copying `basename ${DTB_FILEQ}`"
 sudo cp ${DTB_FILESDL} tmpmount/imx6sdl-novasomP.dtb
-echo -n "`basename ${DTB_FILESDL}` "
-echo "Done"
+exit_if_error $? "Copying `basename ${DTB_FILESDL}`"
 
 sudo umount tmpmount
 sync

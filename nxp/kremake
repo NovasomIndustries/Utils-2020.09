@@ -1,7 +1,8 @@
 #!/bin/sh
 # $1 = kernel
 # $2 = source me file
-# $3 = defconfig file
+# $3 = skip modules
+# $4 = defconfig file
 
 echo "Rebuild all"
-./kmake $1 $2 $3
+./kmake $1 $2 $3 $4

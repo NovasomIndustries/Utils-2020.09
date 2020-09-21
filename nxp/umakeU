@@ -4,11 +4,14 @@
 . ../functions.sh
 clear_resfile
 
-cd /Devel/NOVAsdk${VERSION}/Bootloaders/u-boot-novasomU-2016.03
+cd /Devel/NOVAsdk/Bootloaders/${1}
 make distclean
+exit_if_error $? "make distclean"
 make mrproper
+exit_if_error $? "make mrproper"
 make novasomu_defconfig
+exit_if_error $? "make novasomu_defconfig"
 make -j32
-exit_if_error $? "Error on make"
+exit_if_error $? "make -j32"
 exit_ok
 
