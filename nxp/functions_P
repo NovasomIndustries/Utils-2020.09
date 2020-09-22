@@ -1,6 +1,7 @@
 format_usd () {
 
 DISK=${4}
+BOOTSIZE="128M"
 
 if [ "${1}" = "-" ]; then
 	echo "No user partitions"
@@ -9,7 +10,7 @@ n
 p
 1
 
-+192M
++${BOOTSIZE}
 t
 b
 n
@@ -31,7 +32,7 @@ n
 p
 1
 
-+192M
++${BOOTSIZE}
 t
 b
 n
@@ -62,7 +63,7 @@ n
 p
 1
 
-+192M
++${BOOTSIZE}
 t
 b
 n

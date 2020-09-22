@@ -8,7 +8,9 @@
 # ${7} is the NOVAsomParams file
 # ${8} is the ramdisk size
 
-. ./functions
+
+cd /Devel/NOVAsdk/Utils/nxp
+. ./functions_P
 . ../version
 . ../functions.sh
 clear_resfile
@@ -52,29 +54,34 @@ sync
 exit_if_error 0 "uSD cleared and uboot written"
 
 format_usd ${1} ${2} ${3} ${DISK}
-exit_if_error $? "Format uSD!"
+exit_if_error $? "Format uSD"
 
 rm -rf tmpmount
 mkdir tmpmount
 sleep 1
 sudo mount ${DISK}1 tmpmount
-exit_if_error $? "Mount uSD!"
+exit_if_error $? "Mount uSD"
 
 sudo cp ${UBOOT_IMG} tmpmount/.
 exit_if_error $? "Copying `basename ${UBOOT_IMG}`"
 sudo cp ${KERNEL} tmpmount/zImage
-exit_if_error $? "Copying kernel"
+exit_if_error $? "Copying `basename ${KERNEL}`"
 sudo cp ${UINITRD} tmpmount/.
 exit_if_error $? "Copying `basename ${UINITRD}`"
-echo "setramsize=setenv rdsize ${RAMDISK_SIZE}" > ${DEPLOY_DIR}/NOVAsomParams
-cat ${NOVASOMPARAMS} >> ${DEPLOY_DIR}/NOVAsomParams
-sudo cp ${DEPLOY_DIR}/NOVAsomParams tmpmount/.
-exit_if_error $? "Copying `basename ${NOVASOMPARAMS}`"
+echo "rdsize='${RAMDISK_SIZE}'" > ${DEPLOY_DIR}/uEnv.txt
+sudo cp ${DEPLOY_DIR}/uEnv.txt tmpmount/.
 
 sudo cp ${DTB_FILEQ} tmpmount/imx6q-novasomP.dtb
 exit_if_error $? "Copying `basename ${DTB_FILEQ}`"
 sudo cp ${DTB_FILESDL} tmpmount/imx6sdl-novasomP.dtb
 exit_if_error $? "Copying `basename ${DTB_FILESDL}`"
+#TEMP
+sudo cp  /Devel/NOVAsdk/Kernels/${KERNEL_IS}/arch/arm/boot/dts/imx6dl-novasomp.dtb tmpmount/imx6sdl-novasomP.dtb
+#TEMP END
+mkimage -C none -A arm -T script -d /Devel/NOVAsdk/Utils/nxp/boot-p.cmd /tmp/boot.scr
+sudo cp  /tmp/boot.scr tmpmount/.
+sudo cp  /tmp/boot.scr ${DEPLOY_DIR}
+
 
 sudo umount tmpmount
 sync
