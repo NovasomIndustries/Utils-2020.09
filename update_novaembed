@@ -14,11 +14,12 @@ if [ -f /Devel/NOVAsdk/Qt/NOVAembed/novaembed.cpp ]; then
 		cd ..
 		rm -rf *
 		/Devel/NOVAsdk/Utils/clone_novaembed
-		exit_if_error 1 "NOVAembed updated"
+		exit_if_error 0 "NOVAembed updated"
 	else
 		echo "Already up to date"
 		exit_if_error 0 "Already up to date"
 	fi
 else
 	/Devel/NOVAsdk/Utils/clone_novaembed
+	exit_if_error $? "clone_novaembed"
 fi
