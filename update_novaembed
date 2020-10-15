@@ -6,10 +6,10 @@ HERE="/Devel/NOVAsdk/Utils"
 clear_resfile
 
 echo -n "Working on NOVAembed ... "
-if [ -d /Devel/NOVAsdk/Qt/NOVAembed-${VERSION} ]; then
+if [ -f /Devel/NOVAsdk/Qt/NOVAembed/novaembed.cpp ]; then
 	cd /Devel/NOVAsdk/Qt/NOVAembed
-	git pull --dry-run 2> ../res
-	cat ../res | grep master
+	git pull --dry-run 2> /tmp/res
+	cat /tmp/res | grep master
 	if [ "$?" = "0" ]; then
 		cd ..
 		rm -rf *
