@@ -10,7 +10,7 @@ CONFIG=$3
 HERE="/Devel/NOVAsdk/Utils/rock"
 . ${HERE}/../functions.sh
 
-./kmakeM7 ${KERNEL} ${SOURCEMEFILE} ${CONFIG}
+./kmakeM7 ${KERNEL} ${SOURCEMEFILE} NO_skip_module ${CONFIG}
 ERR=$?
 exit_if_error $ERR "kmake ${KERNEL} ${SOURCEMEFILE} ${CONFIG}"
 echo "Function kmakeM7 returned $ERR : successfull"
