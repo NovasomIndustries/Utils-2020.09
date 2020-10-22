@@ -16,7 +16,7 @@ clear_resfile
 cleanup_and_configure() {
         make mrproper
         make distclean
-        echo "Config is ${CONFIG_FILE}"
+        echo "Config is ${DEFCONFIG}"
         make ${DEFCONFIG}
 }
 
