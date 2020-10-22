@@ -3,6 +3,7 @@ cd /Devel/NOVAsdk/Utils/rock
 . ../SourceMe64
 . ../functions.sh
 
+HERE=`pwd`
 clear_resfile
 rm -f ../../Deploy/m7-idbloader.img ../../Deploy/m7-uboot.img ../../Deploy/m7-trust.img
 BOOT_M7="../../Bootloaders/$1"
