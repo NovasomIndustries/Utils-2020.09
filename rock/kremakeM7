@@ -1,16 +1,18 @@
 #!/bin/sh
 # $1 = kernel
 # $2 = source me file
-# $3 = .config
+# $3 = skip modules if needed
+# $4 = .config
 
 KERNEL=$1
 SOURCEMEFILE=$2
-CONFIG=$3
+SKIP_MODULES=$3
+CONFIG=$4
 
 HERE="/Devel/NOVAsdk/Utils/rock"
 . ${HERE}/../functions.sh
 
-./kmakeM7 ${KERNEL} ${SOURCEMEFILE} NO_skip_module ${CONFIG}
+./kmakeM7 ${KERNEL} ${SOURCEMEFILE} ${SKIP_MODULES} ${CONFIG}
 ERR=$?
 exit_if_error $ERR "kmake ${KERNEL} ${SOURCEMEFILE} ${CONFIG}"
 echo "Function kmakeM7 returned $ERR : successfull"
