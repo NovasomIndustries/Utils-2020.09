@@ -135,33 +135,48 @@ echo "Storing u-boot.itb"
 sudo dd if=${BOOTDIR}/u-boot.itb of=${DISK} seek=16384 status=progress
 sync
 echo -n "Populating boot partition with "
-sudo rm -rf mdisk ; mkdir mdisk
-sudo mount ${DISK}1 mdisk
-sudo mkdir mdisk/binfiles
+sudo rm -rf /tmp/mdisk ; mkdir /tmp/mdisk
+sudo mount ${DISK}1 /tmp/mdisk
+sync
+sudo mkdir /tmp/mdisk/binfiles
+sync
 echo -n "idbloader.img "
-sudo cp ${BOOTDIR}/idbloader.img mdisk/binfiles
+sudo cp ${BOOTDIR}/idbloader.img /tmp/mdisk/binfiles
+sync
 echo -n "u-boot.itb "
-sudo cp ${BOOTDIR}/u-boot.itb mdisk/binfiles
+sudo cp ${BOOTDIR}/u-boot.itb /tmp/mdisk/binfiles
+sync
 echo -n "Image "
-sudo cp ${KERNELDIR}/${KERNEL} mdisk/Image
+sudo cp ${KERNELDIR}/${KERNEL} /tmp/mdisk/Image
+sync
 echo -n "dtb.dtb "
-sudo cp ${DEPLOYDIR}/m9_dtb.dtb mdisk/dtb.dtb
+sudo cp ${DEPLOYDIR}/m9_dtb.dtb /tmp/mdisk/dtb.dtb
+sync
 echo -n "uInitrd "
-sudo cp ${DEPLOYDIR}/uInitrd mdisk/.
+sudo cp ${DEPLOYDIR}/uInitrd /tmp/mdisk/.
+sync
 echo -n "m9.kernel.config "
-sudo cp ${KERNELDIR}/.config mdisk/m9.kernel.config
+sudo cp ${KERNELDIR}/.config /tmp/mdisk/m9.kernel.config
+sync
 echo -n "boot.scr "
-sudo cp /tmp/boot.scr mdisk/.
+sudo cp /tmp/boot.scr /tmp/mdisk/.
+sync
 sudo cp /tmp/boot.scr ${DEPLOYDIR}/m9_boot.scr
+sync
 echo "Done."
 echo -n "Finishing up ..."
-sudo umount mdisk
+sync
+sudo umount /tmp/mdisk
+sync
 if ! [ -z  ${STORE_APP} ]; then
 	echo -n "Storing ${STORE_APP} as application_storage "
-	sudo mount ${DISK}2 mdisk
-	sudo mkdir mdisk/application_storage
-	sudo cp -r ${STORE_APP}/* mdisk/application_storage/.
-	sudo umount mdisk
+	sudo mount ${DISK}2 /tmp/mdisk
+	sync
+	sudo mkdir /tmp/mdisk/application_storage
+	sudo cp -r ${STORE_APP}/* /tmp/mdisk/application_storage/.
+	sync
+	sudo umount /tmp/mdisk
+	sync
 fi
 sync
 echo "Done."

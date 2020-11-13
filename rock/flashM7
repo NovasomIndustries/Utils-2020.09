@@ -127,21 +127,39 @@ echo "Storing trust.img"
 sudo dd if=${BOOTDIR}/trust.img  of=${DISK} seek=24576 conv=sync,fsync,notrunc > /dev/null 2>&1
 sync
 
-echo "Populating boot partition"
-sudo rm -rf mdisk ; mkdir mdisk
-sudo mount ${DISK}1 mdisk
-sudo mkdir mdisk/binfiles
-sudo cp ${BOOTDIR}/idbloader.img mdisk/binfiles
-sudo cp ${BOOTDIR}/u-boot.itb mdisk/binfiles
-sudo cp ${KERNELDIR}/${KERNEL} mdisk/Image
-sudo cp ${DEPLOYDIR}/m7_dtb.dtb mdisk/dtb.dtb
-sudo cp ${DEPLOYDIR}/uInitrd mdisk/.
-sudo cp ${DEPLOYDIR}/*.config mdisk/.
-sudo cp /tmp/boot.scr mdisk/.
+echo -n "Populating boot partition with "
+sudo rm -rf /tmp/mdisk ; mkdir /tmp/mdisk
+sync
+sudo mount ${DISK}1 /tmp/mdisk
+sync
+sudo mkdir /tmp/mdisk/binfiles
+sync
+echo -n "idbloader.img"
+sudo cp ${BOOTDIR}/idbloader.img /tmp/mdisk/binfiles
+sync
+echo -n "u-boot.itb"
+sudo cp ${BOOTDIR}/u-boot.itb /tmp/mdisk/binfiles
+sync
+echo -n "${KERNEL}"
+sudo cp ${KERNELDIR}/${KERNEL} /tmp/mdisk/Image
+sync
+echo -n "m7_dtb.dtb"
+sudo cp ${DEPLOYDIR}/m7_dtb.dtb /tmp/mdisk/dtb.dtb
+sync
+echo -n "uInitrd"
+sudo cp ${DEPLOYDIR}/uInitrd /tmp/mdisk/.
+sync
+echo -n "*.config"
+sudo cp ${DEPLOYDIR}/*.config /tmp/mdisk/.
+sync
+echo -n "boot.scr"
+sudo cp /tmp/boot.scr /tmp/mdisk/.
 sudo cp /tmp/boot.scr ${DEPLOYDIR}/m7_boot.scr
+sync
+sync
 echo "Done."
 echo -n "Finishing up ..."
-sudo umount mdisk
+sudo umount /tmp/mdisk
 sync
 echo "Done."
 exit_ok
