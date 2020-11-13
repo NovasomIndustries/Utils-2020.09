@@ -135,7 +135,10 @@ echo "Storing u-boot.itb"
 sudo dd if=${BOOTDIR}/u-boot.itb of=${DISK} seek=16384 status=progress
 sync
 echo -n "Populating boot partition with "
-sudo rm -rf /tmp/mdisk ; mkdir /tmp/mdisk
+sudo rm -rf /tmp/mdisk
+sync
+mkdir /tmp/mdisk
+sync
 sudo mount ${DISK}1 /tmp/mdisk
 sync
 sudo mkdir /tmp/mdisk/binfiles
