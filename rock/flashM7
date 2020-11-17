@@ -136,25 +136,25 @@ sudo mount ${DISK}1 /tmp/mdisk
 sync
 sudo mkdir /tmp/mdisk/binfiles
 sync
-echo -n "idbloader.img"
+echo -n "idbloader.img "
 sudo cp ${BOOTDIR}/idbloader.img /tmp/mdisk/binfiles
 sync
-echo -n "u-boot.itb"
+echo -n "u-boot.itb "
 sudo cp ${BOOTDIR}/u-boot.itb /tmp/mdisk/binfiles
 sync
 echo -n "${KERNEL}"
 sudo cp ${KERNELDIR}/${KERNEL} /tmp/mdisk/Image
 sync
-echo -n "m7_dtb.dtb"
+echo -n "m7_dtb.dtb "
 sudo cp ${DEPLOYDIR}/m7_dtb.dtb /tmp/mdisk/dtb.dtb
 sync
-echo -n "uInitrd"
+echo -n "uInitrd "
 sudo cp ${DEPLOYDIR}/uInitrd /tmp/mdisk/.
 sync
-echo -n "*.config"
+echo -n "*.config "
 sudo cp ${DEPLOYDIR}/*.config /tmp/mdisk/.
 sync
-echo -n "boot.scr"
+echo -n "boot.scr "
 sudo cp /tmp/boot.scr /tmp/mdisk/.
 sudo cp /tmp/boot.scr ${DEPLOYDIR}/m7_boot.scr
 sync
