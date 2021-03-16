@@ -72,5 +72,8 @@ echo "${DTC_EXEC} -O dtb -b 0 -o ${DTB_OUTFILE} ${DTS_TMP}"
 ${DTC_EXEC} -O dtb -b 0 -o ${DTB_OUTFILE} ${DTS_TMP}
 exit_if_error $? "dtc"
 rm ${INFILE}.tmp.dts
-echo "Compilation successful"
+if [ "$2" = "M7" ]; then
+	cp ${WORKAREA_LOCATION}/${DTB_OUTFILE} /Devel/NOVAsdk/Deploy/m7_dtb.dtb
+fi
+echo "${DTB_OUTFILE} Compilation successful"
 exit_ok
