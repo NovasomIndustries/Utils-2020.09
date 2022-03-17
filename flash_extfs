@@ -1,28 +1,35 @@
 #!/bin/sh
-DISK=$1
-FS=$2
-DTB_SDL=$3
-DTB_Q=$4
+BOARD=$1
+DISK=$2
+FS=$3
+DTB_SDL=$4
+DTB_Q=$5
 . ./version
 HERE="/Devel/NOVAsdk/Utils"
 . ${HERE}/functions.sh
 clear_resfile
 
-echo "Writing $2 on $1"
-! [ -z $3 ] && echo "Using $3 as custom dtb"
-! [ -z $4 ] && echo "Using $4 as additional custom dtb"
+echo "Writing $FS on $DISK"
 bzcat ${FS} | sudo dd of=${DISK} bs=4M status=progress
 sync
 
-if ! [ -z "${3}" ]; then
+if ! [ -z "${DTB_SDL}" ]; then
 	rm -rf ext_tmp
 	mkdir ext_tmp
 	sudo mount ${DISK}1 ext_tmp
-	if ! [ -z "${4}" ]; then
-		sudo cp /Devel/NOVAsdk${VERSION}/DtbUserWorkArea/${3} ext_tmp/.
-		sudo cp /Devel/NOVAsdk${VERSION}/DtbUserWorkArea/${4} ext_tmp/.
-	else
-		sudo cp /Devel/NOVAsdk${VERSION}/DtbUserWorkArea/${3} ext_tmp/dtb.dtb
+	if  [ "${BOARD}" = "P" ]; then
+		! [ -z ${DTB_SDL} ] && echo "Using ${DTB_SDL} as custom dtb"
+		! [ -z ${DTB_Q} ] && echo "Using ${DTB_Q} as additional custom dtb"
+		if ! [ -z "${DTB_Q}" ]; then
+			sudo cp /Devel/NOVAsdk${VERSION}/DtbUserWorkArea/${DTB_SDL} ext_tmp/.
+			sudo cp /Devel/NOVAsdk${VERSION}/DtbUserWorkArea/${DTB_Q} ext_tmp/.
+		fi
+	fi
+	if  [ "${BOARD}" = "M7" ]; then
+		echo "M7 Selected"
+		
+		sudo cp ext_tmp/boot/rk3328-novasomm7.dtb ext_tmp/boot/rk3328-novasomm7.dtbOLD
+		sudo cp /Devel/NOVAsdk${VERSION}/DtbUserWorkArea/${DTB_SDL} ext_tmp/boot/rk3328-novasomm7.dtb
 	fi
 	sync
 	sudo umount ext_tmp
