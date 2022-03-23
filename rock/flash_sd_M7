@@ -13,7 +13,7 @@ DTB=${5}
 # NOVASOM_PARAMS=${7}
 # RAMDISK_SIZE=${8}
 KERNEL="arch/arm64/boot/Image"
-BOOTDIR="../../Bootloaders/u-boot-novasomM7-2017.09"
+BOOTDIR="../../Bootloaders/u-boot-novasomM7-2020-07"
 KERNELDIR="../../Kernels/linux-4.4.167_M7"
 DEPLOYDIR="../../Deploy"
 TOOLSDIR="../../Utils/rock/rkbin"
@@ -24,9 +24,9 @@ HERE="/Devel/NOVAsdk/Utils/rock"
 clear_resfile
 
 # Pre processing
-${BOOTDIR}/tools/mkimage -n rk3328 -T rksd -d rkbin/rk3328_ddr_786MHz_v1.13.bin /tmp/idbloader.img
-cat rkbin/rk322xh_miniloader_v2.46.bin >> /tmp/idbloader.img
-rkbin/tools/loaderimage --pack --uboot ${BOOTDIR}/u-boot-dtb.bin /tmp/uboot.img 0x200000
+#${BOOTDIR}/tools/mkimage -n rk3328 -T rksd -d rkbin/rk3328_ddr_786MHz_v1.13.bin /tmp/idbloader.img
+#cat rkbin/rk322xh_miniloader_v2.46.bin >> /tmp/idbloader.img
+#rkbin/tools/loaderimage --pack --uboot ${BOOTDIR}/u-boot-dtb.bin /tmp/uboot.img 0x200000
 mkimage -C none -A arm -T script -d sdboot-novasom-m7.cmd /tmp/boot.scr
 
 # Compute pointer and size of the file system
@@ -42,7 +42,7 @@ let ROOTFS_SIZE=${ROOTFS_SIZE}/512
 
 UINITRD_SIZE="64M"
 
-FILES="${KERNELDIR}/${KERNEL} /tmp/idbloader.img  /tmp/uboot.img ${BOOTDIR}/trust.img ${DEPLOYDIR}/m7_dtb.dtb ${DEPLOYDIR}/uInitrd NOVAsomParams_M7"
+FILES="${KERNELDIR}/${KERNEL} ${BOOTDIR}/idbloader.img  ${BOOTDIR}/u-boot.img ${BOOTDIR}/trust.img ${DEPLOYDIR}/m7_dtb.dtb ${DEPLOYDIR}/uInitrd NOVAsomParams_M7"
 for i in ${FILES}; do
 	if ! [ -f ${i} ]; then
 		NOTFOUND=`basename ${i}`
@@ -126,9 +126,9 @@ if [ "${USERNUM}" = "2" ]; then
 fi
 sync
 echo "Storing idbloader.img "
-sudo dd if=/tmp/idbloader.img of=${DISK}  seek=64 conv=notrunc > /dev/null 2>&1
-echo "Storing uboot.img"
-sudo dd if=/tmp/uboot.img  of=${DISK} seek=16384 conv=sync,fsync,notrunc
+sudo dd if=${BOOTDIR}/idbloader.img of=${DISK}  seek=64 conv=notrunc > /dev/null 2>&1
+echo "Storing u-boot.img"
+sudo dd if=${BOOTDIR}/u-boot.img  of=${DISK} seek=16384 conv=sync,fsync,notrunc
 echo "Storing trust.img "
 sudo dd if=${BOOTDIR}/trust.img  of=${DISK} seek=24576 conv=sync,fsync,notrunc
 sync
@@ -137,8 +137,8 @@ sudo rm -rf /tmp/mdisk
 mkdir /tmp/mdisk
 sudo mount ${DISK}1 /tmp/mdisk
 sudo mkdir /tmp/mdisk/binfiles
-sudo cp /tmp/idbloader.img /tmp/mdisk/binfiles
-sudo cp /tmp/uboot.img /tmp/mdisk/binfiles
+sudo cp ${BOOTDIR}/idbloader.img /tmp/mdisk/binfiles
+sudo cp ${BOOTDIR}/u-boot.img /tmp/mdisk/binfiles
 sudo cp ${BOOTDIR}/trust.img /tmp/mdisk/binfiles
 sudo cp ${KERNELDIR}/${KERNEL} /tmp/mdisk/Image
 sudo cp ${DEPLOYDIR}/m7_dtb.dtb /tmp/mdisk/dtb.dtb
